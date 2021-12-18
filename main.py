@@ -3,6 +3,12 @@ import glob
 import streamlit as st
 import numpy as np
 import pandas as pd
+from PIL import Image
+
+
+image = Image.open('images/Header.png')
+st.image(image)
+
 
 st.header('Summarizing')
 df = pd.DataFrame(
