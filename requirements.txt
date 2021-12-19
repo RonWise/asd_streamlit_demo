@@ -3,3 +3,4 @@ pandas~=1.3.5
 librosa~=0.8.1
 streamlit~=1.3.0
 Pillow~=8.4.0
+matplotlib==3.5.1
