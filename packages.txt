@@ -1,2 +1,3 @@
-python-cffi
+libasound2-dev
 libsndfile1-dev
+ffmpeg
