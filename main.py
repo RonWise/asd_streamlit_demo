@@ -66,25 +66,26 @@ object_type_gan = st.selectbox(
 )
 epoch = st.select_slider(
     'Select epoch to listen to synthesized sound',
-    options=['160', '320', '390', '640', '730', '840', '980', '1060', '1130', '1450'])
+    options=['150', '300', '450', '600', '750', '900', '1050', '1200', '1350', '1500'])
 gan_dir = os.path.join(exmp_dir, object_type_gan)
-origin_file = os.path.join(gan_dir, 'original_1.wav')
-synthesised_file = os.path.join(gan_dir, f'gan_1_{epoch}.wav')
-col1, col2 = st.columns(2)
-with col1:
-    fig = plot_wav_melspectrogram(origin_file)
-    st.pyplot(fig)
-    with open(origin_file, 'rb') as fin:
-        audio_bytes = fin.read()
-        st.markdown("Original Sound")
-        st.audio(audio_bytes, format='audio/wav')
-with col2:
-    fig = plot_wav_melspectrogram(synthesised_file)
-    st.pyplot(fig)
-    with open(synthesised_file, 'rb') as fin:
-        audio_bytes = fin.read()
-        st.markdown(f"Synthesised normal sound on {epoch} epoch")
-        st.audio(audio_bytes, format='audio/wav')
+for i in range(1, 3):
+    origin_file = os.path.join(gan_dir, f'original_{i}.wav')
+    synthesised_file = os.path.join(gan_dir, f'gan_{i}_{epoch}.wav')
+    col1, col2 = st.columns(2)
+    with col1:
+        fig = plot_wav_melspectrogram(origin_file)
+        st.pyplot(fig)
+        with open(origin_file, 'rb') as fin:
+            audio_bytes = fin.read()
+            st.markdown("Original Sound")
+            st.audio(audio_bytes, format='audio/wav')
+    with col2:
+        fig = plot_wav_melspectrogram(synthesised_file)
+        st.pyplot(fig)
+        with open(synthesised_file, 'rb') as fin:
+            audio_bytes = fin.read()
+            st.markdown(f"Synthesised normal sound on {epoch} epoch")
+            st.audio(audio_bytes, format='audio/wav')
 
 
 
