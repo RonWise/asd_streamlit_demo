@@ -1,1 +1,2 @@
+python-cffi
 libsndfile1-dev
