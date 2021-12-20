@@ -26,21 +26,19 @@ def file_load(wav_name, mono=False):
 
 
 def logmelspectrogram(
-        file_name,
-        n_fft=1024,
-        hop_length=512,
-        n_mels=128,
-        power=2.0,
-                   ):
+    file_name,
+    n_fft=1024,
+    hop_length=512,
+    n_mels=128,
+    power=2.0,
+):
     y, sr = file_load(file_name)
-    mel_spectrogram = librosa.feature.melspectrogram(y=y,
-                                                     sr=sr,
-                                                     n_fft=n_fft,
-                                                     hop_length=hop_length,
-                                                     n_mels=n_mels,
-                                                     power=power)
+    mel_spectrogram = librosa.feature.melspectrogram(
+        y=y, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, power=power
+    )
 
     # 03 convert melspectrogram to log mel energy
-    log_mel_spectrogram = 20.0 / power * np.log10(mel_spectrogram + sys.float_info.epsilon)
+    mel_spectrogram[mel_spectrogram < sys.float_info.epsilon] = sys.float_info.epsilon
+    log_mel_spectrogram = 20.0 / power * np.log10(mel_spectrogram)
 
     return log_mel_spectrogram
