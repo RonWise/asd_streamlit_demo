@@ -58,22 +58,25 @@ with col2:
 
 # augmentations
 aug_details = {
-    "AddGaussianNoise": "added Gaussian noise",
-    "FrequencyMask": "random frequency masked",
-    "TimeMask": "random time masked",
+    "AddGaussianNoise": "Noise",  #: added noise helps against low audio signal quality",
+    "FrequencyMask": "Frequency mask",  #: masking blocks of consecutive frequency channels. It helps the model to be robust against partial loss of frequency information in the input.",
+    "TimeMask": "Time mask",  #: helps against partial loss of small segments of signal.",
+    "TimeStretch": "Time warping",  #: helps against deformations in the time direction.",
+    "LowPassFilter": "Low-pass filter",
+    "HighPassFilter": "High-pass filter",
 }
 
-st.header("AUGMENTATIONS")
+st.header("Augmentations")
 exmp_dir = "aug_example"
-examples = glob.glob(os.path.join(exmp_dir, object_type_example, "*.wav"))
+examples = glob.glob(os.path.join(exmp_dir, object_type_example, "normal_*.wav"))
 
 col1, col2 = st.columns(2)
 
 with col1:
-    for file in examples:
+    for file in examples[:3]:
         file_short_name = file.split("/")[-1].split(".")[0]
         # print augmentation details
-        st.markdown(aug_details[file_short_name])
+        st.markdown(aug_details[file_short_name.split("_")[-1]])
         # Plot Raw and MelSpectrogram
         fig = plot_wav_melspectrogram(file)
         st.pyplot(fig)
@@ -83,8 +86,17 @@ with col1:
             st.audio(audio_bytes, format="audio/wav")
 
 with col2:
-    for file in examples:
-        st.markdown("")
+    for file in examples[3:]:
+        file_short_name = file.split("/")[-1].split(".")[0]
+        # print augmentation details
+        st.markdown(aug_details[file_short_name.split("_")[-1]])
+        # Plot Raw and MelSpectrogram
+        fig = plot_wav_melspectrogram(file)
+        st.pyplot(fig)
+        # Plot Audio Bar
+        with open(file, "rb") as audio_file:
+            audio_bytes = audio_file.read()
+            st.audio(audio_bytes, format="audio/wav")
 
 
 # GAN
