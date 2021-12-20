@@ -12,9 +12,12 @@ def plot_wav_melspectrogram(file):
     fig, ax = plt.subplots(2, 1)
     librosa.display.waveshow(y, sr=sr, ax=ax[0])
     S = logmelspectrogram(file)
-    librosa.display.specshow(S, x_axis='time', y_axis='log', ax=ax[1])
+    librosa.display.specshow(S, x_axis="time", y_axis="log", ax=ax[1])
+    # adding color bar
+    # img = librosa.display.specshow(S, x_axis="time", y_axis="log", ax=ax[1])
 
-    ax[0].set(title='Sound wave')
-    ax[1].set(title='Log-frequency power spectrogram')
+    ax[0].set(title="Sound wave")
+    ax[1].set(title="Log-frequency power spectrogram")
+    # fig.colorbar(img, ax=ax[1], format="%+2.f dB")
     plt.tight_layout()
     return fig
