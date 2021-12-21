@@ -1,199 +1,74 @@
 import os
+import glob
 import random
 from pathlib import Path
 
 import numpy as np
-import time
 from scipy.io import wavfile
+
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 from audiomentations import (
     AddGaussianNoise,
     TimeStretch,
-    PitchShift,
-    Shift,
-    Normalize,
     FrequencyMask,
     TimeMask,
-    AddGaussianSNR,
-    Resample,
-    ClippingDistortion,
-    AddBackgroundNoise,
-    AddShortNoises,
-    PolarityInversion,
-    Gain,
-    Mp3Compression,
-    LoudnessNormalization,
-    Trim,
     LowPassFilter,
     HighPassFilter,
-    BandPassFilter,
-    ApplyImpulseResponse,
-    Reverse,
-    TanhDistortion,
-    Compose,
-    SomeOf,
-    OneOf,
 )
 from audiomentations.core.audio_loading_utils import load_sound_file
 from audiomentations.core.transforms_interface import (
     MultichannelAudioNotSupportedException,
 )
 
-DEMO_DIR = os.path.dirname(__file__)
+CURRENT_DIR = os.path.dirname(__file__)
+APPLICATION_NAME = "apply_augm"
+DEFAULT_INPUT_PATH = os.path.dirname(__file__)
+DEFAULT_OUTPUT_PATH = os.path.join(CURRENT_DIR, "aug_output")
 
 
-class timer(object):
-    """
-    timer: A class used to measure the execution time of a block of code that is
-    inside a "with" statement.
-    Example:
-    ```
-    with timer("Count to 500000"):
-        x = 0
-        for i in range(500000):
-            x += 1
-        print(x)
-    ```
-    Will output:
-    500000
-    Count to 500000: 0.04 s
-    Warning: The time resolution used here may be limited to 1 ms
-    """
-
-    def __init__(self, description="Execution time", verbose=False):
-        self.description = description
-        self.verbose = verbose
-        self.execution_time = None
-
-    def __enter__(self):
-        self.t = time.time()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.execution_time = time.time() - self.t
-        if self.verbose:
-            print("{}: {:.3f} s".format(self.description, self.execution_time))
-
-
-if __name__ == "__main__":
-    """
-    For each transformation, apply it to an example sound and write the transformed sounds to
-    an output folder. Also crudely measure and print execution time.
-    """
-
-    output_dir = os.path.join(DEMO_DIR, "aug_output")
-    os.makedirs(output_dir, exist_ok=True)
-
-    np.random.seed(420)
-    random.seed(420)
-
-    input_dir = "./sound/fan/"
-
-    sound_file_paths = [
-        Path(os.path.join(DEMO_DIR, input_dir + "normal_id_00_00000000.wav")),
-    ]
+def process_files(output_dir, sound_file_paths):
 
     transforms = [
         {
             "instance": AddGaussianNoise(
-                min_amplitude=0.001, max_amplitude=0.015, p=1.0
+                min_amplitude=0.001, max_amplitude=0.005, p=1.0
             ),
             "num_runs": 1,
         },
-        # {
-        #     "instance": AddGaussianSNR(min_snr_in_db=0, max_snr_in_db=35, p=1.0),
-        #     "num_runs": 5,
-        #     "name": "AddGaussianSNRNew",
-        # },
-        # {"instance": BandPassFilter(p=1.0), "num_runs": 5},
-        # {"instance": ClippingDistortion(p=1.0), "num_runs": 5},
         {
             "instance": FrequencyMask(
-                min_frequency_band=0.5, max_frequency_band=0.6, p=1.0
+                min_frequency_band=0.34, max_frequency_band=0.5, p=1.0
             ),
             "num_runs": 1,
         },
-        # {"instance": Gain(min_gain_in_db=-6, max_gain_in_db=6, p=1.0), "num_runs": 5},
-        # {"instance": HighPassFilter(p=1.0), "num_runs": 5},
-        # {"instance": LowPassFilter(p=1.0), "num_runs": 5},
-        # {
-        #     "instance": PitchShift(min_semitones=-4, max_semitones=4, p=1.0),
-        #     "num_runs": 5,
-        # },
-        # {"instance": LoudnessNormalization(p=1.0), "num_runs": 5},
-        # {
-        #     "instance": Mp3Compression(backend="lameenc", p=1.0),
-        #     "num_runs": 5,
-        #     "name": "Mp3CompressionLameenc",
-        # },
-        # {
-        #     "instance": Mp3Compression(backend="pydub", p=1.0),
-        #     "num_runs": 5,
-        #     "name": "Mp3CompressionPydub",
-        # },
-        # {"instance": Normalize(p=1.0), "num_runs": 1},
-        # {"instance": PolarityInversion(p=1.0), "num_runs": 1},
-        # {"instance": Resample(p=1.0), "num_runs": 5},
-        # {"instance": Reverse(p=1.0), "num_runs": 1},
-        # {
-        #     "instance": Shift(min_fraction=-0.5, max_fraction=0.5, fade=False, p=1.0),
-        #     "num_runs": 5,
-        #     "name": "ShiftWithoutFade",
-        # },
-        # {
-        #     "instance": Shift(min_fraction=-0.5, max_fraction=0.5, fade=True, p=1.0),
-        #     "num_runs": 5,
-        #     "name": "ShiftWithShortFade",
-        # },
-        # {
-        #     "instance": Shift(
-        #         min_fraction=-0.5,
-        #         max_fraction=0.5,
-        #         rollover=False,
-        #         fade=True,
-        #         fade_duration=0.3,
-        #         p=1.0,
-        #     ),
-        #     "num_runs": 5,
-        #     "name": "ShiftWithoutRolloverWithLongFade",
-        # },
-        # {"instance": TanhDistortion(p=1.0), "num_runs": 5},
-        {"instance": TimeMask(p=1.0), "num_runs": 1},
-        # {"instance": TimeStretch(min_rate=0.8, max_rate=1.25, p=1.0), "num_runs": 5},
-        # {"instance": Trim(p=1.0), "num_runs": 1},
-        # {
-        #     "instance": Compose(
-        #         [
-        #             AddGaussianNoise(min_amplitude=0.001, max_amplitude=0.015, p=0.5),
-        #             SomeOf(
-        #                 (0, 2),
-        #                 [
-        #                     TimeStretch(min_rate=0.8, max_rate=1.25, p=1.0),
-        #                     PitchShift(min_semitones=-4, max_semitones=4, p=1.0),
-        #                 ],
-        #             ),
-        #             Shift(min_fraction=-0.5, max_fraction=0.5, p=0.5),
-        #             OneOf([TanhDistortion(p=1.0), ClippingDistortion(p=1.0)], p=0.25),
-        #         ]
-        #     ),
-        #     "num_runs": 10,
-        #     "name": "BigCompose",
-        # },
+        {
+            "instance": TimeMask(min_band_part=0.0, max_band_part=0.01, p=1.0),
+            "num_runs": 1,
+        },
+        {
+            "instance": TimeStretch(min_rate=0.5, max_rate=1.5, p=1.0),
+            "num_runs": 1,
+        },
+        {
+            "instance": LowPassFilter(min_cutoff_freq=150, max_cutoff_freq=7500, p=1.0),
+            "num_runs": 1,
+        },
+        {
+            "instance": HighPassFilter(min_cutoff_freq=20, max_cutoff_freq=2400, p=1.0),
+            "num_runs": 1,
+        },
     ]
 
     for sound_file_path in sound_file_paths:
+        sound_file_name = sound_file_path.split(".wav")[0]
         samples, sample_rate = load_sound_file(
             sound_file_path, sample_rate=None, mono=False
         )
         if len(samples.shape) == 2 and samples.shape[0] > samples.shape[1]:
             samples = samples.transpose()
 
-        print(
-            "Transforming {} with shape {}".format(
-                sound_file_path.name, str(samples.shape)
-            )
-        )
-        execution_times = {}
+        print(f"Transforming {sound_file_path} with shape {str(samples.shape)}")
 
         for transform in transforms:
             augmenter = transform["instance"]
@@ -202,18 +77,16 @@ if __name__ == "__main__":
                 if transform.get("name")
                 else transform["instance"].__class__.__name__
             )
-            execution_times[run_name] = []
+
             for i in range(transform["num_runs"]):
                 output_file_path = os.path.join(
                     output_dir,
-                    "{}_{}_{:03d}.wav".format(sound_file_path.stem, run_name, i),
+                    f"{sound_file_name.split('/')[-1]}_{run_name}.wav",
                 )
                 try:
-                    with timer() as t:
-                        augmented_samples = augmenter(
-                            samples=samples, sample_rate=sample_rate
-                        )
-                    execution_times[run_name].append(t.execution_time)
+                    augmented_samples = augmenter(
+                        samples=samples, sample_rate=sample_rate
+                    )
 
                     if len(augmented_samples.shape) == 2:
                         augmented_samples = augmented_samples.transpose()
@@ -224,18 +97,68 @@ if __name__ == "__main__":
                 except MultichannelAudioNotSupportedException as e:
                     print(e)
 
-        for run_name in execution_times:
-            if len(execution_times[run_name]) > 1:
-                print(
-                    "{:<32} {:.3f} s (std: {:.3f} s)".format(
-                        run_name,
-                        np.mean(execution_times[run_name]),
-                        np.std(execution_times[run_name]),
-                    )
-                )
-            else:
-                print(
-                    "{:<32} {:.3f} s".format(
-                        run_name, np.mean(execution_times[run_name])
-                    )
-                )
+
+def process_pipeline(input_filepath, output_filepath):
+    """
+    Process augmentations
+    """
+
+    np.random.seed(42)
+    random.seed(42)
+
+    # import pdb; pdb.set_trace()
+
+    output_dir = os.path.join(CURRENT_DIR, output_filepath)
+    os.makedirs(output_dir, exist_ok=True)
+
+    input_dir = os.path.join(CURRENT_DIR, input_filepath)
+    sound_file_paths = glob.glob(os.path.join(input_dir, "*.wav"))
+    process_files(output_dir, sound_file_paths)
+
+
+def callback_parser(arguments):
+    """Calling process function wth received arguments"""
+
+    return process_pipeline(
+        arguments.input_filepath,
+        arguments.output_filepath,
+    )
+
+
+def setup_parser(parser):
+    """Setting up parser"""
+
+    parser.add_argument(
+        "-i",
+        "--input",
+        default=DEFAULT_INPUT_PATH,
+        metavar="INPUT",
+        dest="input_filepath",
+        help="path to audio files to process, default path is %(default)s",
+    )
+
+    parser.add_argument(
+        "-o",
+        "--ouput",
+        default=DEFAULT_OUTPUT_PATH,
+        metavar="OUTPUT",
+        dest="output_filepath",
+        help="path to output folder with augmented audio files, default path is %(default)s",
+    )
+
+    parser.set_defaults(callback=callback_parser)
+
+
+def main():
+    parser = ArgumentParser(
+        prog="apply_augm",
+        description="Script to generate audio augmentations",
+        formatter_class=ArgumentDefaultsHelpFormatter,
+    )
+    setup_parser(parser)
+    arguments = parser.parse_args()
+    arguments.callback(arguments)
+
+
+if __name__ == "__main__":
+    main()
