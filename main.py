@@ -134,27 +134,21 @@ case = st.selectbox(
     key="case",
 )
 object_data_errors = data[object_id_error][ERROR_MAPPER[case]]
-
+title = 'Anomaly' if 'anomaly' in case else 'Normal'
+title_case = 'Good' if 'good' in case else 'Bad'
 for i in range(0, 2):
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    fig.suptitle(f'{title_case} reconstruction result for {title} file \n Anomaly Score: {round(object_data_errors[i]["score"], 2)}', y=0.80)
     ax1.imshow(ndimage.rotate(object_data_errors[i]['x'], 90))
+    ax1.set_title('X')
     ax1.axis('off')
     ax2.imshow(ndimage.rotate(object_data_errors[i]['y'], 90))
+    ax2.set_title('Y')
     ax2.axis('off')
     ax3.imshow(ndimage.rotate(object_data_errors[i]['error'], 90))
+    ax3.set_title(f'Error')
     ax3.axis('off')
     st.pyplot(fig)
-    #
-    #     st.pyplot(fig)
-    # with col2:
-    #     fig_2 = Figure()
-    #     st.pyplot(fig_2)
-    # with col3:
-    #     fig_3 = Figure()
-    #     plt.imshow(object_data_errors[i]['error'])
-    #     st.pyplot(fig_3)
-
-
 
 # GAN
 
