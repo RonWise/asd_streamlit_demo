@@ -1,7 +1,10 @@
+import json
 import os
 import glob
 
+import numpy
 import numpy as np
+from scipy import ndimage
 import pandas as pd
 import librosa
 import librosa.display
@@ -11,6 +14,7 @@ from PIL import Image
 from plot_utils import plot_wav_melspectrogram
 
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 
 image = Image.open("images/Header.png")
 st.image(image)
@@ -97,6 +101,43 @@ with col2:
         with open(file, "rb") as audio_file:
             audio_bytes = audio_file.read()
             st.audio(audio_bytes, format="audio/wav")
+
+# Error
+
+st.header("Errors")
+exmp_dir = "gan_example"
+
+object_type_error = st.selectbox(
+    "Choose object type",
+    ("valve", "slider", "ToyCar", "pump", "fan", "ToyConveyor"),
+    key="error",
+)
+with open(f'error_example/{object_type_error}.json') as json_file:
+    data = json.load(json_file)
+
+object_id_error = st.selectbox(
+    "Choose object type",
+    data.keys(),
+    key="object_id_error",
+)
+object_data_errors = data[object_id_error]
+
+for i in range(0, 2):
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    ax1.imshow(ndimage.rotate(object_data_errors[i]['x'], 90))
+    ax2.imshow(ndimage.rotate(object_data_errors[i]['y'], 90))
+    ax3.imshow(ndimage.rotate(object_data_errors[i]['error'], 90))
+    st.pyplot(fig)
+    #
+    #     st.pyplot(fig)
+    # with col2:
+    #     fig_2 = Figure()
+    #     st.pyplot(fig_2)
+    # with col3:
+    #     fig_3 = Figure()
+    #     plt.imshow(object_data_errors[i]['error'])
+    #     st.pyplot(fig_3)
+
 
 
 # GAN
