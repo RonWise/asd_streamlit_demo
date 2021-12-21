@@ -16,6 +16,14 @@ from plot_utils import plot_wav_melspectrogram
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
+
+ERROR_MAPPER = {
+    'normal-good-case': 'normal_good',
+    'anomaly-good-case': 'anomaly_good',
+    'normal-bad-case': 'normal_bad',
+    'anomaly-bad-case': 'anomaly_bad',
+}
+
 image = Image.open("images/Header.png")
 st.image(image)
 
@@ -102,7 +110,7 @@ with col2:
             audio_bytes = audio_file.read()
             st.audio(audio_bytes, format="audio/wav")
 
-# Error
+# # Error
 
 st.header("Errors")
 exmp_dir = "gan_example"
@@ -120,13 +128,21 @@ object_id_error = st.selectbox(
     data.keys(),
     key="object_id_error",
 )
-object_data_errors = data[object_id_error]
+case = st.selectbox(
+    "Choose case",
+    ERROR_MAPPER.keys(),
+    key="case",
+)
+object_data_errors = data[object_id_error][ERROR_MAPPER[case]]
 
 for i in range(0, 2):
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
     ax1.imshow(ndimage.rotate(object_data_errors[i]['x'], 90))
+    ax1.axis('off')
     ax2.imshow(ndimage.rotate(object_data_errors[i]['y'], 90))
+    ax2.axis('off')
     ax3.imshow(ndimage.rotate(object_data_errors[i]['error'], 90))
+    ax3.axis('off')
     st.pyplot(fig)
     #
     #     st.pyplot(fig)
