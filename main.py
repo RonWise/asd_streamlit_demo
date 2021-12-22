@@ -10,6 +10,7 @@ import librosa
 import librosa.display
 import streamlit as st
 from PIL import Image
+import plotly.express as px
 
 from plot_utils import plot_wav_melspectrogram
 
@@ -150,6 +151,23 @@ for i in range(0, 2):
     ax3.axis('off')
     st.pyplot(fig)
 
+# Latent Space
+
+st.header("Latent Space")
+
+object_type_latent = st.selectbox(
+    "Choose object type",
+    ("valve", "slider", "ToyCar", "pump", "fan", "ToyConveyor"),
+    key="latent",
+)
+
+data = pd.read_csv(f'latent_space/{object_type_latent}.csv', index_col=0)
+
+fig = px.scatter_3d(data, x='tsne-3d-one', y='tsne-3d-two', z='tsne-3d-three',
+              color='status_id')
+
+st.plotly_chart(fig, use_container_width=True)
+
 # GAN
 
 st.header("GAN")
@@ -186,6 +204,6 @@ for i in range(1, 3):
 
 
 st.header("Summarizing")
-df = pd.DataFrame(np.random.randn(10, 20), columns=("col %d" % i for i in range(20)))
 
+df = pd.read_csv('results/result.csv')
 st.dataframe(df)
