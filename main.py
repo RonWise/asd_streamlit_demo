@@ -17,7 +17,6 @@ from plot_utils import plot_wav_melspectrogram
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
-
 ERROR_MAPPER = {
     'normal-good-case': 'normal_good',
     'anomaly-good-case': 'anomaly_good',
@@ -72,7 +71,8 @@ with col2:
 # augmentations
 aug_details = {
     "AddGaussianNoise": "Noise",  #: added noise helps against low audio signal quality",
-    "FrequencyMask": "Frequency mask",  #: masking blocks of consecutive frequency channels. It helps the model to be robust against partial loss of frequency information in the input.",
+    "FrequencyMask": "Frequency mask",
+    #: masking blocks of consecutive frequency channels. It helps the model to be robust against partial loss of frequency information in the input.",
     "TimeMask": "Time mask",  #: helps against partial loss of small segments of signal.",
     "TimeStretch": "Time warping",  #: helps against deformations in the time direction.",
     "LowPassFilter": "Low-pass filter",
@@ -139,7 +139,9 @@ title = 'Anomaly' if 'anomaly' in case else 'Normal'
 title_case = 'Good' if 'good' in case else 'Bad'
 for i in range(0, 2):
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-    fig.suptitle(f'{title_case} reconstruction result for {title} file \n Anomaly Score: {round(object_data_errors[i]["score"], 2)}', y=0.80)
+    fig.suptitle(
+        f'{title_case} reconstruction result for {title} file \n Anomaly Score: {round(object_data_errors[i]["score"], 2)}',
+        y=0.80)
     ax1.imshow(ndimage.rotate(object_data_errors[i]['x'], 90))
     ax1.set_title('X')
     ax1.axis('off')
@@ -164,7 +166,7 @@ object_type_latent = st.selectbox(
 data = pd.read_csv(f'latent_space/{object_type_latent}.csv', index_col=0)
 
 fig = px.scatter_3d(data, x='tsne-3d-one', y='tsne-3d-two', z='tsne-3d-three',
-              color='status_id')
+                    color='status_id')
 
 st.plotly_chart(fig, use_container_width=True)
 
@@ -202,8 +204,28 @@ for i in range(1, 3):
             st.markdown(f"Synthesised normal sound on {epoch} epoch")
             st.audio(audio_bytes, format="audio/wav")
 
-
 st.header("Summarizing")
 
-df = pd.read_csv('results/result.csv')
-st.dataframe(df)
+# df = pd.read_csv('results/result.csv')
+# st.dataframe(df)
+
+df = pd.read_csv('results/form_result.csv', sep=';', dtype=float, header=None)
+df.columns = pd.MultiIndex.from_product([['ToyCar', 'ToyConveyor', 'Fan', 'Pump', 'Slider', 'Valve'], ['pAUC', 'AUC']],
+                                        names=['Device:', 'Metric:'])
+df.index = pd.Index(['0', '1', '2', '3', 'Average'], name='#')
+
+
+def style_negative(v):
+    if v > 0.7:
+        return 'color: green;'
+    if v > 0.6:
+        return 'color: orange;'
+    return None
+
+
+df = df.style.applymap(style_negative) \
+    .applymap(lambda v: 'opacity: 20%;' if (v < 0.5) else None).format(precision=0, na_rep="–", formatter="{:.2f}")
+# st.dataframe(df)
+
+st.table(df)
+
